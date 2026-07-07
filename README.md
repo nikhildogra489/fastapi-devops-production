@@ -1,113 +1,37 @@
-# FastAPI DevOps Production Deployment
+# Deployment Guide
 
-## Project Overview
+## Server
 
-This project demonstrates a production-ready deployment of a FastAPI application using Docker, Docker Compose, PostgreSQL, Redis, NGINX Reverse Proxy, and GitHub Actions on an AWS EC2 instance.
-
-The project showcases a complete DevOps workflow including containerization, reverse proxy configuration, automated deployment, health monitoring, logging strategy, backup strategy, and infrastructure documentation.
-
----
-
-## Tech Stack
-
-- FastAPI
+- AWS EC2 Ubuntu 24.04 LTS
 - Docker
 - Docker Compose
-- PostgreSQL 16
-- Redis 7
 - NGINX
-- AWS EC2 (Ubuntu)
-- GitHub Actions
-- Git
+- PostgreSQL
+- Redis
 
 ---
 
-## Architecture
+## Clone Repository
 
-```
-                GitHub
-                   │
-          GitHub Actions (CI/CD)
-                   │
-              SSH Deployment
-                   │
-              AWS EC2 Server
-                   │
-               NGINX Proxy
-                   │
-               FastAPI App
-              /           \
-      PostgreSQL        Redis
+```bash
+git clone https://github.com/nikhildogra489/fastapi-devops-production.git
+cd fastapi-devops-production
 ```
 
 ---
 
-## Project Structure
+## Create Environment File
 
+```bash
+nano .env
 ```
-.
-├── app/
-│   ├── Dockerfile
-│   ├── main.py
-│   └── requirements.txt
-│
-├── nginx/
-│   └── default.conf
-│
-├── .github/
-│   └── workflows/
-│       └── deploy.yml
-│
-├── docker-compose.yml
-├── .env.example
-├── DEPLOYMENT.md
-└── README.md
-```
-
----
-
-## Features
-
-- Dockerized FastAPI application
-- Docker Compose orchestration
-- PostgreSQL database
-- Redis cache
-- NGINX Reverse Proxy
-- Environment variable configuration
-- Health Check endpoint
-- GitHub Actions CI/CD
-- AWS EC2 deployment
-- Production-ready project structure
-
----
-
-## Health Check
-
-```
-GET /health
-```
-
-Response
-
-```json
-{
-  "status": "healthy",
-  "service": "fastapi"
-}
-```
-
----
-
-## Environment Variables
-
-Create a `.env` file.
 
 Example:
 
 ```
-POSTGRES_DB=fastapi_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_DB=devopsdb
+POSTGRES_USER=devops
+POSTGRES_PASSWORD=devops123
 POSTGRES_HOST=postgres
 
 REDIS_HOST=redis
@@ -115,106 +39,118 @@ REDIS_HOST=redis
 
 ---
 
-## Run Locally
+## Build Application
 
-Clone repository
-
-```
-git clone https://github.com/your-username/fastapi-devops-production.git
-```
-
-Go inside project
-
-```
-cd fastapi-devops-production
-```
-
-Build
-
-```
+```bash
 docker compose up -d --build
 ```
 
 ---
 
-## Deployment
+## Verify Containers
 
-The application is deployed on an AWS EC2 Ubuntu instance using Docker Compose.
-
-NGINX acts as the reverse proxy.
-
-GitHub Actions automatically deploys the application whenever code is pushed to the main branch.
+```bash
+docker compose ps
+```
 
 ---
 
-## Logging Strategy
+## Test Endpoints
 
-- Docker container logs
-- FastAPI application logs
-- NGINX access logs
-- NGINX error logs
-
-Logs can be viewed using:
-
+```bash
+curl http://localhost/
+curl http://localhost/health
+curl http://localhost/db
+curl http://localhost/redis
 ```
+
+---
+
+## GitHub Actions Deployment
+
+Every push to the **main** branch automatically:
+
+1. Connects to EC2 using SSH
+2. Pulls the latest code
+3. Rebuilds Docker containers
+4. Restarts the application
+
+---
+
+## Restart Application
+
+```bash
+docker compose restart
+```
+
+---
+
+## View Logs
+
+```bash
 docker compose logs
 ```
+
+or
+
+```bash
+docker compose logs fastapi
+```
+
+---
+
+## Stop Application
+
+```bash
+docker compose down
+```
+
+---
+
+## Security
+
+- SSH key authentication
+- AWS Security Groups
+- Environment variables
+- Docker container isolation
+
+---
+
+## SSL
+
+For production:
+
+- Use Let's Encrypt + Certbot
+- Configure NGINX for HTTPS
+- Or use Cloudflare as a reverse proxy
 
 ---
 
 ## Backup Strategy
 
-- PostgreSQL data stored in Docker Volume
-- Redis data stored in Docker Volume
-- Volumes can be backed up regularly
-- Docker restart policy ensures automatic recovery
+PostgreSQL data is stored in Docker volumes.
+
+Example backup:
+
+```bash
+docker exec postgres_db pg_dump -U devops devopsdb > backup.sql
+```
 
 ---
 
-## Security Measures
+## Health Check
 
-- Ubuntu server
-- SSH key authentication
-- AWS Security Groups
-- Docker container isolation
-- Environment variables for secrets
+```text
+GET /health
+```
 
----
+Returns:
 
-## SSL Approach
+```json
+{
+  "status":"healthy",
+  "service":"fastapi"
+}
+``` 
 
-Since no custom domain is available, SSL is documented for production deployment.
-
-Recommended approach:
-
-- Let's Encrypt
-- Certbot
-- Cloudflare Proxy
-
----
-
-## CI/CD
-
-GitHub Actions automatically:
-
-- Connects to EC2
-- Pulls latest code
-- Rebuilds Docker containers
-- Restarts the application
-
----
-
-## API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| / | Home |
-| /health | Health Check |
-| /db | PostgreSQL Test |
-| /redis | Redis Test |
-
----
-
-## Author
-
-**Nikhil Dogra**
+is this look like ai written code?
